@@ -1,6 +1,7 @@
-Compatible with XRD Committee Draft 1.0
-http://docs.oasis-open.org/xri/xrd/v1.0/xrd-1.0.html
+Compatible with XRD Working Draft 10
+http://www.oasis-open.org/committees/download.php/35274/xrd-1.0-wd10.html
 
 Outstanding issues:
-* parsing of Expires date stamp from XML
-* more tests are needed
+
+- parsing of Expires date stamp from XML
+- more tests are needed
