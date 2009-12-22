@@ -139,23 +139,27 @@ def _render_xml(xrd):
 # special XRD types
 #
 
-class StringLikeObject(object):
-    def __eq__(self, value):
-        return self.value == value
-    def __str__(self):
-        return self.value
-
-class Title(StringLikeObject):
+class Title(object):
     def __init__(self, value, xml_lang=None):
         self.value = value
         self.xml_lang = xml_lang
+    def __eq__(self, value):
+        return str(self) == value
+    def __str__(self):
+        if self.xml_lang:
+            return u"%s:%s" % (self.xml_lang, self.value)
+        return self.value
         
 class Property(object):
     def __init__(self, type_, value=None):
         self.type = type_
         self.value = value
+    def __eq__(self, value):
+        return str(self) == value
     def __str__(self):
-        return u"%s: %s" % (self.type, self.value)
+        if self.value:
+            return u"%s:%s" % (self.type, self.value)
+        return self.type
         
 #
 # special list types

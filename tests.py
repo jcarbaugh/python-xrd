@@ -1,5 +1,79 @@
-from xrd import XRD, Link, Property, _get_text
+from xrd import XRD, Link, Property, Title, _get_text
 import unittest
+
+class TestProperty(unittest.TestCase):
+    
+    def testequals(self):
+        
+        # same type and value
+        p1 = Property('http://example.com/p1', '1234')
+        p2 = Property('http://example.com/p1', '1234')
+        self.assertTrue(p1 == p2)
+
+        # same type, no value
+        p1 = Property('http://example.com/p1')
+        p2 = Property('http://example.com/p1')
+        self.assertTrue(p1 == p2)
+        
+    def testnotequals(self):
+        
+        # same value, different type
+        p1 = Property('http://example.com/p1', '1234')
+        p2 = Property('http://example.com/p2', '1234')
+        self.assertTrue(p1 != p2)
+        
+        # same type, different value
+        p1 = Property('http://example.com/p1', '1234')
+        p2 = Property('http://example.com/p1', '9876')
+        self.assertTrue(p1 != p2)
+        
+        # same type, one value missing
+        p1 = Property('http://example.com/p1')
+        p2 = Property('http://example.com/p1', '12345')
+        self.assertTrue(p1 != p2)
+        
+        # different type, no value
+        p1 = Property('http://example.com/p1')
+        p2 = Property('http://example.com/p2')
+        self.assertTrue(p1 != p2)
+
+
+class TestTitle(unittest.TestCase):
+    
+    def testequals(self):
+        
+        # same title and xmllang
+        t1 = Title('myfeed', xml_lang='en-US')
+        t2 = Title('myfeed', xml_lang='en-US')
+        self.assertTrue(t1 == t2)
+
+        # same title, no xmllang
+        t1 = Title('myfeed')
+        t2 = Title('myfeed')
+        self.assertTrue(t1 == t2)
+        
+    def testnotequals(self):
+
+        # same title, different xmllang
+        t1 = Property('myfeed', 'en-US')
+        t2 = Property('myfeed', 'en-GB')
+        self.assertTrue(t1 != t2)
+        
+        # same xmllang, different title
+        t1 = Property('myfeed', 'en-US')
+        t2 = Property('yourfeed', 'en-US')
+        self.assertTrue(t1 != t2)
+        
+        # same title, one missing xmllang
+        t1 = Property('myfeed')
+        t2 = Property('myfeed', 'en-GB')
+        self.assertTrue(t1 != t2)
+        
+        # different title, no xml lang
+        t1 = Property('myfeed')
+        t2 = Property('yourfeed')
+        self.assertTrue(t1 != t2)
+
 
 class TestDeserialization(unittest.TestCase):
 
