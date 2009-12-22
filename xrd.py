@@ -194,6 +194,14 @@ class LinkList(ListLikeObject):
             raise ValueError('value must be an instance of Link')
         return value
 
+class PropertyList(ListLikeObject):
+    def item(self, value):
+        if isinstance(value, basestring):
+            return Property(value)
+        elif isinstance(value, (tuple, list)):
+            return Property(*value)
+        return value
+
 #
 # Link object
 #
@@ -230,7 +238,7 @@ class XRD(object):
         self.subject = subject
         self._expires = None
         self._aliases = []
-        self._properties = []
+        self._properties = PropertyList()
         self._links = LinkList()
         self._signatures = []
     

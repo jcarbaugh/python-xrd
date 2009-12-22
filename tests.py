@@ -110,8 +110,8 @@ class TestSerialization(unittest.TestCase):
     
     def setUp(self):
         self.xrd = XRD('9876')
-        self.xrd.properties.append(Property('mimetype', 'text/plain'))
-        self.xrd.properties.append(Property('none'))
+        self.xrd.properties.append(('mimetype', 'text/plain'))
+        self.xrd.properties.append('none')
         self.xrd.links.append(Link(template="http://google.com/{uri}"))
         self.doc = self.xrd.to_xml().documentElement
     
