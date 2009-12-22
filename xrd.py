@@ -130,6 +130,15 @@ def _render_xml(xrd):
             if title.xml_lang:
                 node.setAttribute('xml:lang', title.xml_lang)
             link_node.appendChild(node)
+        
+        for prop in link.properties:
+            node = doc.createElement('Property')
+            node.setAttribute('type', prop.type)
+            if prop.value:
+                node.appendChild(doc.createTextNode(unicode(prop.value)))
+            else:
+                node.setAttribute('xsi:nil', 'true')
+            link_node.appendChild(node)
             
         root.appendChild(link_node)
     
@@ -215,9 +224,6 @@ class Link(object):
         self.template = template
         self._titles = TitleList()
         self._properties = []
-    
-    def __str__(self):
-        return ", ".join(self._rels)
     
     def get_titles(self):
         return self._titles
