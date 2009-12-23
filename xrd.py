@@ -1,5 +1,6 @@
 from xml.dom.minidom import getDOMImplementation, parseString, Node
 import datetime
+import iso8601
 
 __author__ = "Jeremy Carbaugh (jcarbaugh@gmail.com)"
 __version__ = "0.1"
@@ -20,7 +21,7 @@ def _get_text(root):
 def _parse_xml(content):
     
     def expires_handler(node, obj):
-        #obj.expires = _get_text(node)
+        obj.expires = iso8601.parse_date(_get_text(node))
         pass
     
     def subject_handler(node, obj):
@@ -52,15 +53,25 @@ def _parse_xml(content):
         'Title': title_handler,
     }
     
+    def unknown_handler(node, obj):
+        obj.elements.append(Element(
+            name=node.tagName,
+            value=_get_text(node),
+        ))
+    
     def handle_node(node, obj):
-        handler = handlers.get(node.nodeName, None)
-        if handler:
+        handler = handlers.get(node.nodeName, unknown_handler)
+        if handler and node.nodeType == node.ELEMENT_NODE:
             handler(node, obj)
     
     doc = parseString(content)
     root = doc.documentElement
     
     xrd = XRD(root.getAttribute('xml:id'))
+    
+    for name, value in root.attributes.items():
+        if name != 'xml:id':
+            xrd.attributes.append((name, value))
     
     for node in root.childNodes:
         handle_node(node, xrd)
@@ -80,6 +91,9 @@ def _render_xml(xrd):
     
     if xrd.xml_id:
         root.setAttribute('xml:id', xrd.xml_id)
+    
+    for attr in xrd.attributes:
+        root.setAttribute(attr[0], attr[1])
     
     if xrd.expires:
         node = doc.createElement('Expires')
@@ -103,6 +117,11 @@ def _render_xml(xrd):
             node.appendChild(doc.createTextNode(unicode(prop.value)))
         else:
             node.setAttribute('xsi:nil', 'true')
+        root.appendChild(node)
+        
+    for element in xrd.elements:
+        node = doc.createElement(element.name)
+        node.appendChild(doc.createTextNode(element.value))
         root.appendChild(node)
     
     for link in xrd.links:
@@ -148,6 +167,19 @@ def _render_xml(xrd):
 # special XRD types
 #
 
+class Attribute(object):
+    def __init__(self, name, value):
+        self.name = name
+        self.value = value
+    def __str__(self):
+        return u"%s=%s" % (self.name, self.value)
+
+class Element(object):
+    def __init__(self, name, value, attrs=None):
+        self.name = name
+        self.value = value
+        self.attrs = attrs or { }
+
 class Title(object):
     def __init__(self, value, xml_lang=None):
         self.value = value
@@ -185,16 +217,36 @@ class ListLikeObject(list):
         values = (self.item(value) for value in values)
         super(ListLikeObject, self).extend(values)
 
+class AttributeList(ListLikeObject):
+    def item(self, value):
+        if isinstance(value, (list, tuple)):
+            return Attribute(*value)
+        elif not isinstance(value, Attribute):
+            raise ValueError('value must be an instance of Attribute')
+        return value
+
+class ElementList(ListLikeObject):
+    def item(self, value):
+        if not isinstance(value, Element):
+            raise ValueError('value must be an instance of Type')
+        return value
+
 class TypeList(ListLikeObject):
     def item(self, value):
         if isinstance(value, basestring):
             return Type(value)
+        elif not isinstance(value, Type):
+            raise ValueError('value must be an instance of Type')
         return value
 
 class TitleList(ListLikeObject):
     def item(self, value):
         if isinstance(value, basestring):
             return Title(value)
+        elif isinstance(value, (list, tuple)):
+            return Title(*value)
+        elif not isinstance(value, Title):
+            raise ValueError('value must be an instance of Title')
         return value
 
 class LinkList(ListLikeObject):
@@ -209,6 +261,8 @@ class PropertyList(ListLikeObject):
             return Property(value)
         elif isinstance(value, (tuple, list)):
             return Property(*value)
+        elif not isinstance(value, Property):
+            raise ValueError('value must be an instance of Property')
         return value
 
 #
@@ -247,6 +301,11 @@ class XRD(object):
         self._properties = PropertyList()
         self._links = LinkList()
         self._signatures = []
+        
+        self._attributes = AttributeList()
+        self._elements = ElementList()
+    
+    # ser/deser methods
     
     @classmethod
     def parse(cls, xrd):
@@ -254,6 +313,18 @@ class XRD(object):
     
     def to_xml(self):
         return _render_xml(self)
+
+    # custom elements and attributes
+
+    def get_elements(self):
+        return self._elements
+    elements = property(get_elements)
+
+    def get_attributes(self):
+        return self._attributes
+    attributes = property(get_attributes)
+    
+    # defined elements and attributes
     
     def get_expires(self):
         return self._expires
