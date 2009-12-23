@@ -3,6 +3,20 @@ import unittest
 
 class TestProperty(unittest.TestCase):
     
+    def testassignment(self):
+        
+        xrd = XRD()
+        xrd.properties.append('http://example.com/lang')
+        xrd.properties.append(('http://example.com/lang', 'en-US'))
+        xrd.properties.append(Property('http://example.com/lang'))
+        xrd.properties.append(Property('http://example.com/lang', 'en-US'))
+        
+        link = Link()
+        link.properties.append('http://example.com/lang')
+        link.properties.append(('http://example.com/lang', 'en-US'))
+        link.properties.append(Property('http://example.com/lang'))
+        link.properties.append(Property('http://example.com/lang', 'en-US'))
+    
     def testequals(self):
         
         # same type and value
@@ -40,6 +54,13 @@ class TestProperty(unittest.TestCase):
 
 class TestTitle(unittest.TestCase):
     
+    def testassignment(self):
+        link = Link()
+        link.titles.append('myfeed')
+        link.titles.append(('myfeed', 'en-US'))
+        link.titles.append(Title('myfeed'))
+        link.titles.append(Title('myfeed', 'en-US'))
+    
     def testequals(self):
         
         # same title and xmllang
@@ -55,23 +76,23 @@ class TestTitle(unittest.TestCase):
     def testnotequals(self):
 
         # same title, different xmllang
-        t1 = Property('myfeed', 'en-US')
-        t2 = Property('myfeed', 'en-GB')
+        t1 = Title('myfeed', 'en-US')
+        t2 = Title('myfeed', 'en-GB')
         self.assertTrue(t1 != t2)
         
         # same xmllang, different title
-        t1 = Property('myfeed', 'en-US')
-        t2 = Property('yourfeed', 'en-US')
+        t1 = Title('myfeed', 'en-US')
+        t2 = Title('yourfeed', 'en-US')
         self.assertTrue(t1 != t2)
         
         # same title, one missing xmllang
-        t1 = Property('myfeed')
-        t2 = Property('myfeed', 'en-GB')
+        t1 = Title('myfeed')
+        t2 = Title('myfeed', 'en-GB')
         self.assertTrue(t1 != t2)
         
         # different title, no xml lang
-        t1 = Property('myfeed')
-        t2 = Property('yourfeed')
+        t1 = Title('myfeed')
+        t2 = Title('yourfeed')
         self.assertTrue(t1 != t2)
 
 
