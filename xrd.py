@@ -93,7 +93,7 @@ def _render_xml(xrd):
         root.setAttribute('xml:id', xrd.xml_id)
     
     for attr in xrd.attributes:
-        root.setAttribute(attr[0], attr[1])
+        root.setAttribute(attr.name, attr.value)
     
     if xrd.expires:
         node = doc.createElement('Expires')
@@ -313,6 +313,17 @@ class XRD(object):
     
     def to_xml(self):
         return _render_xml(self)
+    
+    # helper methods
+
+    def find_link(self, rels, attr=None):
+        if not isinstance(rels, (list, tuple)):
+            rels = (rels,)
+        for link in self.links:
+            if link.rel in rels:
+                if attr:
+                    return getattr(link, attr, None)
+                return link
 
     # custom elements and attributes
 
