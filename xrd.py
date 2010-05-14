@@ -2,6 +2,11 @@ from xml.dom.minidom import getDOMImplementation, parseString, Node
 import datetime
 import iso8601
 
+try:
+    import json
+except ImportError:
+    import simplejson as json
+
 __author__ = "Jeremy Carbaugh (jcarbaugh@gmail.com)"
 __version__ = "0.1"
 __copyright__ = "Copyright (c) 2009 Jeremy Carbaugh"
@@ -18,11 +23,157 @@ def _get_text(root):
             text += _get_text(node)
     return text.strip() or None
 
+def _clean_dict(d):
+    for key in d.keys():
+        if not d[key]:
+            del d[key]
+
+# json parser/renderer
+
+def _parse_json(content):
+    
+    def expires_handler(key, val, obj):
+        obj.expires = iso8601.parse_date(val)
+    
+    def subject_handler(key, val, obj):
+        obj.subject = val
+    
+    def alias_handler(key, val, obj):
+        for alias in val:
+            obj.aliases.append(alias)
+    
+    def property_handler(key, val, obj):
+        for prop in val:
+            prop_type = prop.keys()[0]
+            prop_value = prop.values()[0]
+            obj.properties.append(Property(prop_type, prop_value))
+
+    def title_handler(key, val, obj):
+        for title in val:
+            title_lang = title.keys()[0]
+            if title_lang == 'default':
+                title_lang = None
+            title_value = title.values()[0]
+            obj.titles.append(Title(title_value, title_lang))
+    
+    def link_handler(key, val, obj):
+        for link in val:
+            l = Link()
+            l.rel = link.get('rel', None)
+            l.type = link.get('type', None)
+            l.href = link.get('href', None)
+            l.template = link.get('template', None)
+            if 'title' in link:
+                title_handler('title', link['title'], l)
+            if 'property' in link:
+                property_handler('property', link['property'], l)
+            obj.links.append(l)
+    
+    def namespace_handler(key, val, obj):
+        for namespace in val:
+            ns = namespace.keys()[0]
+            ns_uri = namespace.values()[0]
+            obj.attributes.append(Attribute("xmlns:%s" % ns, ns_uri))
+    
+    handlers = {
+        'expires': expires_handler,
+        'subject': subject_handler,
+        'alias': alias_handler,
+        'property': property_handler,
+        'link': link_handler,
+        'title': title_handler,
+        'namespace': namespace_handler,
+    }
+    
+    def unknown_handler(key, val, obj):
+        if ':' in key:
+            (ns, name) = key.split(':')
+            key = "%s:%s" % (ns, name.capitalize())
+        obj.elements.append(Element(key, val))
+    
+    doc = json.loads(content)
+    
+    xrd = XRD()
+    xrd.attributes.append(Attribute("xmlns", XRD_NAMESPACE))
+    
+    for key, value in doc.iteritems():
+        handler = handlers.get(key, unknown_handler)
+        handler(key, value, xrd)
+
+    return xrd
+
+def _render_json(xrd):
+    
+    doc = {
+        "alias": [],
+        "link": [],
+        "namespace": [],
+        "property": [],
+        "title": [],
+    }
+
+    list_keys = doc.keys()
+
+    for attr in xrd.attributes:
+        if attr.name.startswith("xmlns:"):
+            ns = attr.name.split(":")[1]
+            doc['namespace'].append({ ns: attr.value})
+    
+    if xrd.expires:
+        doc['expires'] = xrd.expires.isoformat()
+    
+    if xrd.subject:
+        doc['subject'] = xrd.subject
+    
+    for alias in xrd.aliases:
+        doc['alias'].append(alias)
+    
+    for prop in xrd.properties:
+        doc['property'].append({ prop.type: prop.value })
+    
+    for link in xrd.links:
+        
+        link_doc = {
+            'title': [],
+            'property': [],
+        }
+        
+        if link.rel:
+            link_doc['rel'] = link.rel
+        
+        if link.type:
+            link_doc['type'] = link.type
+        
+        if link.href:
+            link_doc['href'] = link.href
+        
+        if link.template:
+            link_doc['template'] = link.template
+        
+        for prop in link.properties:
+            link_doc['property'].append({ prop.type: prop.value })
+        
+        for title in link.titles:
+            lang = title.xml_lang or "default"
+            link_doc['title'].append({ lang: title.value })
+            
+        _clean_dict(link_doc)
+        
+        doc['link'].append(link_doc)
+    
+    for elem in xrd.elements:
+        doc[elem.name.lower()] = elem.value
+     
+    _clean_dict(doc)
+    
+    return json.dumps(doc)
+    
+# xml parser/renderer
+
 def _parse_xml(content):
     
     def expires_handler(node, obj):
         obj.expires = iso8601.parse_date(_get_text(node))
-        pass
     
     def subject_handler(node, obj):
         obj.subject = _get_text(node)
@@ -306,10 +457,21 @@ class XRD(object):
         self._elements = ElementList()
     
     # ser/deser methods
+
+    @classmethod
+    def parse(cls, xrd):    # deprecate this method!!!
+        return _parse_xml(xrd)
     
     @classmethod
-    def parse(cls, xrd):
+    def parse_jrd(cls, jrd):
+        return _parse_json(jrd)
+
+    @classmethod
+    def parse_xrd(cls, xrd):
         return _parse_xml(xrd)
+    
+    def to_json(self):
+        return _render_json(self)
     
     def to_xml(self):
         return _render_xml(self)

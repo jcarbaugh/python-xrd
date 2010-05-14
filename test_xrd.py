@@ -1,7 +1,12 @@
 from xrd import XRD, Link, Property, Title, _get_text
 import unittest
 
-class TestProperty(unittest.TestCase):
+try:
+    import json
+except ImportError:
+    import simplejson as json
+
+class TestXRDProperty(unittest.TestCase):
     
     def testassignment(self):
         
@@ -52,7 +57,7 @@ class TestProperty(unittest.TestCase):
         self.assertTrue(p1 != p2)
 
 
-class TestTitle(unittest.TestCase):
+class TestXRDTitle(unittest.TestCase):
     
     def testassignment(self):
         link = Link()
@@ -95,11 +100,36 @@ class TestTitle(unittest.TestCase):
         t2 = Title('yourfeed')
         self.assertTrue(t1 != t2)
 
-
-class TestDeserialization(unittest.TestCase):
+class TestJRDDeserialization(unittest.TestCase):
 
     def setUp(self):
-        self.xrd = XRD.parse("""<?xml version="1.0" ?>
+        self.xrd = XRD.parse_jrd("""{
+            "link": [
+                {
+                    "template": "http://google.com/{uri}",
+                    "title": [
+                        { "en_us": "this is my rel" }
+                    ]
+                }
+            ],
+            "property": [
+                { "mimetype": "text/plain" }
+            ]
+        }""")
+
+    def testproperty(self):
+        prop = self.xrd.properties[0]
+        self.assertEqual(prop.type, "mimetype")
+        self.assertEqual(prop.value, "text/plain")
+
+    def testlink(self):
+        link = self.xrd.links[0]
+        self.assertEqual(link.template, "http://google.com/{uri}")
+                
+class TestXRDDeserialization(unittest.TestCase):
+
+    def setUp(self):
+        self.xrd = XRD.parse_xrd("""<?xml version="1.0" ?>
             <XRD xml:id="1234" xmlns="http://docs.oasis-open.org/ns/xri/xrd-1.0">
             	<Property type="mimetype">text/plain</Property>
             	<Property type="none"></Property>
@@ -126,8 +156,24 @@ class TestDeserialization(unittest.TestCase):
         link = self.xrd.links[0]
         self.assertEqual(link.template, "http://google.com/{uri}")
 
+class TestJRDSerialization(unittest.TestCase):
 
-class TestSerialization(unittest.TestCase):
+    def setUp(self):
+        self.xrd = XRD()
+        self.xrd.properties.append(('mimetype', 'text/plain'))
+        self.xrd.links.append(Link(template="http://google.com/{uri}"))
+        self.doc = json.loads(self.xrd.to_json())
+
+    def testproperty(self):
+        prop = self.doc['property'][0]
+        self.assertEqual(prop.keys()[0], 'mimetype')
+        self.assertEqual(prop.values()[0], 'text/plain')
+
+    def testlink(self):
+        link = self.doc['link'][0]
+        self.assertEqual(link['template'], "http://google.com/{uri}")
+
+class TestXRDSerialization(unittest.TestCase):
     
     def setUp(self):
         self.xrd = XRD('9876')
