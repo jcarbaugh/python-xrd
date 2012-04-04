@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 from xml.dom.minidom import getDOMImplementation, parseString, Node
 import datetime
 
-import iso8601
+import isodate
 
 try:
     import json
@@ -41,7 +41,7 @@ def _clean_dict(d):
 def _parse_json(content):
     
     def expires_handler(key, val, obj):
-        obj.expires = iso8601.parse_date(val)
+        obj.expires = isodate.parse_date(val)
     
     def subject_handler(key, val, obj):
         obj.subject = val
@@ -181,7 +181,7 @@ def _render_json(xrd):
 def _parse_xml(content):
     
     def expires_handler(node, obj):
-        obj.expires = iso8601.parse_date(_get_text(node))
+        obj.expires = isodate.parse_date(_get_text(node))
     
     def subject_handler(node, obj):
         obj.subject = _get_text(node)
