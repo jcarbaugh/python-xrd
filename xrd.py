@@ -3,8 +3,6 @@ from xml.dom.minidom import getDOMImplementation, parseString, Node
 import datetime
 import json
 
-import isodate
-
 __author__ = "Jeremy Carbaugh (jcarbaugh@gmail.com)"
 __version__ = "0.1"
 __copyright__ = "Copyright (c) 2009 Jeremy Carbaugh"
@@ -35,6 +33,8 @@ def _clean_dict(d):
 # json parser/renderer
 
 def _parse_json(content):
+
+    import isodate
     
     def expires_handler(key, val, obj):
         obj.expires = isodate.parse_date(val)
@@ -175,6 +175,8 @@ def _render_json(xrd):
 # xml parser/renderer
 
 def _parse_xml(content):
+
+    import isodate
     
     def expires_handler(node, obj):
         obj.expires = isodate.parse_date(_get_text(node))
