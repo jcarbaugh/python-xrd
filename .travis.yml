@@ -4,3 +4,7 @@ python:
   - 2.7
 install:
   - pip install iso8601
+  - pip install nose --use-mirrors
+notifications:
+    email:
+        - jcarbaugh@gmail.com
