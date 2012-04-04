@@ -4,7 +4,7 @@ from xrd import __version__
 long_description = open('README.rst').read()
 
 setup(name="python-xrd",
-    version=__version__,
+    version=str(__version__),
     py_modules=["xrd"],
     description="Package for serializing and deserializing of XRD documents",
     author="Jeremy Carbaugh",
@@ -12,6 +12,7 @@ setup(name="python-xrd",
     license='BSD',
     url="http://github.com/jcarbaugh/python-xrd/",
     long_description=long_description,
+    requires=["isodate"],
     platforms=["any"],
     classifiers=[
         "Development Status :: 4 - Beta",
