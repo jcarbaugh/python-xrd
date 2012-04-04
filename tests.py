@@ -1,5 +1,7 @@
-from xrd import XRD, Link, Property, Title, _get_text
+from __future__ import unicode_literals
 import unittest
+
+from xrd import XRD, Link, Property, Title, _get_text
 
 try:
     import json
@@ -166,8 +168,8 @@ class TestJRDSerialization(unittest.TestCase):
 
     def testproperty(self):
         prop = self.doc['property'][0]
-        self.assertEqual(prop.keys()[0], 'mimetype')
-        self.assertEqual(prop.values()[0], 'text/plain')
+        self.assertEqual(list(prop.keys())[0], 'mimetype')
+        self.assertEqual(list(prop.values())[0], 'text/plain')
 
     def testlink(self):
         link = self.doc['link'][0]

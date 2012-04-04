@@ -1,5 +1,7 @@
+from __future__ import unicode_literals
 from xml.dom.minidom import getDOMImplementation, parseString, Node
 import datetime
+
 import iso8601
 
 try:
@@ -23,8 +25,14 @@ def _get_text(root):
             text += _get_text(node)
     return text.strip() or None
 
+def _is_str(s):
+    try:
+        return isinstance(s, basestring)
+    except NameError:
+        return isinstance(s, str)
+
 def _clean_dict(d):
-    for key in d.keys():
+    for key in list(d.keys()):
         if not d[key]:
             del d[key]
 
@@ -44,16 +52,16 @@ def _parse_json(content):
     
     def property_handler(key, val, obj):
         for prop in val:
-            prop_type = prop.keys()[0]
-            prop_value = prop.values()[0]
+            prop_type = list(prop.keys())[0]
+            prop_value = list(prop.values())[0]
             obj.properties.append(Property(prop_type, prop_value))
 
     def title_handler(key, val, obj):
         for title in val:
-            title_lang = title.keys()[0]
+            title_lang = list(title.keys())[0]
             if title_lang == 'default':
                 title_lang = None
-            title_value = title.values()[0]
+            title_value = list(title.values())[0]
             obj.titles.append(Title(title_value, title_lang))
     
     def link_handler(key, val, obj):
@@ -71,8 +79,8 @@ def _parse_json(content):
     
     def namespace_handler(key, val, obj):
         for namespace in val:
-            ns = namespace.keys()[0]
-            ns_uri = namespace.values()[0]
+            ns = list(namespace.keys())[0]
+            ns_uri = list(namespace.values())[0]
             obj.attributes.append(Attribute("xmlns:%s" % ns, ns_uri))
     
     handlers = {
@@ -96,7 +104,7 @@ def _parse_json(content):
     xrd = XRD()
     xrd.attributes.append(Attribute("xmlns", XRD_NAMESPACE))
     
-    for key, value in doc.iteritems():
+    for key, value in doc.items():
         handler = handlers.get(key, unknown_handler)
         handler(key, value, xrd)
 
@@ -112,7 +120,7 @@ def _render_json(xrd):
         "title": [],
     }
 
-    list_keys = doc.keys()
+    #list_keys = doc.keys()
 
     for attr in xrd.attributes:
         if attr.name.startswith("xmlns:"):
@@ -265,7 +273,7 @@ def _render_xml(xrd):
         node = doc.createElement('Property')
         node.setAttribute('type', prop.type)
         if prop.value:
-            node.appendChild(doc.createTextNode(unicode(prop.value)))
+            node.appendChild(doc.createTextNode(str(prop.value)))
         else:
             node.setAttribute('xsi:nil', 'true')
         root.appendChild(node)
@@ -296,7 +304,7 @@ def _render_xml(xrd):
         
         for title in link.titles:
             node = doc.createElement('Title')
-            node.appendChild(doc.createTextNode(unicode(title)))
+            node.appendChild(doc.createTextNode(str(title)))
             if title.xml_lang:
                 node.setAttribute('xml:lang', title.xml_lang)
             link_node.appendChild(node)
@@ -305,7 +313,7 @@ def _render_xml(xrd):
             node = doc.createElement('Property')
             node.setAttribute('type', prop.type)
             if prop.value:
-                node.appendChild(doc.createTextNode(unicode(prop.value)))
+                node.appendChild(doc.createTextNode(str(prop.value)))
             else:
                 node.setAttribute('xsi:nil', 'true')
             link_node.appendChild(node)
@@ -323,7 +331,7 @@ class Attribute(object):
         self.name = name
         self.value = value
     def __str__(self):
-        return u"%s=%s" % (self.name, self.value)
+        return "%s=%s" % (self.name, self.value)
 
 class Element(object):
     def __init__(self, name, value, attrs=None):
@@ -339,7 +347,7 @@ class Title(object):
         return str(self) == value
     def __str__(self):
         if self.xml_lang:
-            return u"%s:%s" % (self.xml_lang, self.value)
+            return "%s:%s" % (self.xml_lang, self.value)
         return self.value
         
 class Property(object):
@@ -350,7 +358,7 @@ class Property(object):
         return str(self) == value
     def __str__(self):
         if self.value:
-            return u"%s:%s" % (self.type, self.value)
+            return "%s:%s" % (self.type, self.value)
         return self.type
         
 #
@@ -384,7 +392,7 @@ class ElementList(ListLikeObject):
 
 class TypeList(ListLikeObject):
     def item(self, value):
-        if isinstance(value, basestring):
+        if _is_str(value):
             return Type(value)
         elif not isinstance(value, Type):
             raise ValueError('value must be an instance of Type')
@@ -392,7 +400,7 @@ class TypeList(ListLikeObject):
 
 class TitleList(ListLikeObject):
     def item(self, value):
-        if isinstance(value, basestring):
+        if _is_str(value):
             return Title(value)
         elif isinstance(value, (list, tuple)):
             return Title(*value)
@@ -408,7 +416,7 @@ class LinkList(ListLikeObject):
 
 class PropertyList(ListLikeObject):
     def item(self, value):
-        if isinstance(value, basestring):
+        if _is_str(value):
             return Property(value)
         elif isinstance(value, (tuple, list)):
             return Property(*value)
