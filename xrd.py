@@ -1,13 +1,9 @@
 from __future__ import unicode_literals
 from xml.dom.minidom import getDOMImplementation, parseString, Node
 import datetime
+import json
 
 import isodate
-
-try:
-    import json
-except ImportError:
-    import simplejson as json
 
 __author__ = "Jeremy Carbaugh (jcarbaugh@gmail.com)"
 __version__ = "0.1"

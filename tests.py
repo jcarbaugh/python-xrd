@@ -1,12 +1,8 @@
 from __future__ import unicode_literals
+import json
 import unittest
 
 from xrd import XRD, Link, Property, Title, _get_text
-
-try:
-    import json
-except ImportError:
-    import simplejson as json
 
 class TestXRDProperty(unittest.TestCase):
     
