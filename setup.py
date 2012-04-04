@@ -12,7 +12,7 @@ setup(name="python-xrd",
     license='BSD',
     url="http://github.com/jcarbaugh/python-xrd/",
     long_description=long_description,
-    requires=["isodate"],
+    install_requires=["isodate"],
     platforms=["any"],
     classifiers=[
         "Development Status :: 4 - Beta",
