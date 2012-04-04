@@ -5,6 +5,7 @@ python:
 install:
   - pip install iso8601
   - pip install nose --use-mirrors
+script: nosetests
 notifications:
     email:
         - jcarbaugh@gmail.com
