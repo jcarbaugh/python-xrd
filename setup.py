@@ -1,9 +1,10 @@
+#!/usr/bin/env python
 from distutils.core import setup
 from xrd import __version__
 
 long_description = open('README.rst').read()
 
-setup(name="python-xrd",
+setup(name="xrd",
     version=str(__version__),
     py_modules=["xrd"],
     description="Package for serializing and deserializing of XRD documents",
@@ -23,4 +24,5 @@ setup(name="python-xrd",
         "Programming Language :: Python",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
+    requires=['isodate']
 )
