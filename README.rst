@@ -13,13 +13,13 @@ Basic usage::
     from xrd import XRD, Link
 
     lnk = Link(rel='http://spec.example.net/photo/1.0',
-               type='image/jpeg',
+               type_='image/jpeg',
                href='http://photos.example.com/gpburdell.jpg')
     lnk.titles.append(('User Photo', 'en'))
     lnk.titles.append(('Benutzerfoto', 'de'))
     lnk.properties.append(('http://spec.example.net/created/1.0', '1970-01-01'))
 
-    xrd = XRD(subject=http://example.com/gpburdell)
+    xrd = XRD('subject=http://example.com/gpburdell')
     xrd.properties.append('http://spec.example.net/type/person')
     xrd.links.append(lnk)
 
