@@ -434,7 +434,7 @@ class Link(object):
         self.href = href
         self.template = template
         self._titles = TitleList()
-        self._properties = []
+        self._properties = PropertyList()
     
     def get_titles(self):
         return self._titles
