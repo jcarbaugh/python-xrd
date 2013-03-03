@@ -171,6 +171,24 @@ class TestJRDSerialization(unittest.TestCase):
         link = self.doc['link'][0]
         self.assertEqual(link['template'], "http://google.com/{uri}")
 
+class TestIssue2(unittest.TestCase):
+    """Regression tests for Issue#2
+
+    See: https://github.com/jcarbaugh/python-xrd/issues/2
+    """
+    def testComplexLinks(self):
+        xrd = XRD('9876')
+        xrd.properties.append(('mimetype', 'text/plain'))
+
+        # This tests Issue #2
+        lnk = Link(rel='http://spec.example.net/photo/1.0',
+                   type_='image/jpeg',
+                   href='http://photos.example.com/gpburdell.jpg')
+        lnk.properties.append(('http://spec.example.net/created/1.0', '1970-01-01'))
+        xrd.links.append(lnk)
+
+        xrd.to_xml()
+
 class TestXRDSerialization(unittest.TestCase):
     
     def setUp(self):
