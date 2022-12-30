@@ -5,7 +5,7 @@ description = "Serializing and deserializing XRD documents"
 authors = ["Jeremy Carbaugh <39159+jcarbaugh@users.noreply.github.com>"]
 license = "MIT"
 readme = "README.md"
-packages = [{include = "python_xrd"}]
+packages = [{include = "xrd.py"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
