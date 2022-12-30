@@ -24,7 +24,7 @@ jobs:
       - name: Install Requirements
         run: poetry install
       - name: Tests
-        run: poetry run pytest --cov=xrd
+        run: poetry run pytest --cov=xrd --color=yes
   lint:
     name: Linting
     runs-on: ubuntu-latest
