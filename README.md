@@ -52,7 +52,8 @@ There are additional tests, but these are the ones that need to be the same for 
 | link / property            |    ✓    |     ✓     |    ✓     |     ✓      |
 | link / property / nil      |    ✓    |     ✓     |    ✓     |     ✓      |
 | link / property / multi \* |    ✓    |     ✓     |    ✓     |     ✓      |
-| signature \*\*             |   n/a   |    n/a    |   n/a    |    n/a     |
+| XRDS                       |    ✕    |     ✕     |   n/a    |    n/a     |
+| signature \*\*             |    ✕    |     ✕     |   n/a    |    n/a     |
 
 \* JRD does not support multiple properties of the same type, per the spec.
 When serializing to JSON only the last value will be used if there are
