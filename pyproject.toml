@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "python-xrd"
+version = "1.0.0"
+description = "Serializing and deserializing XRD documents"
+authors = ["Jeremy Carbaugh <39159+jcarbaugh@users.noreply.github.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "xrd.py"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+isodate = "^0.6.1"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.2.0"
+black = "^22.12.0"
+pytest-cov = "^4.0.0"
+mypy = "^0.991"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
