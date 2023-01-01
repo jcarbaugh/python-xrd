@@ -59,6 +59,13 @@ class XRD:
     links: List[Link] = field(default_factory=list)
     attributes: dict[str, str] = field(default_factory=dict)
 
+    @classmethod
+    def parse_xrd(cls, content: str) -> "XRD":
+        """Deprecated method to be removed in a future release.
+        Use xrd.parse_xml() instead.
+        """
+        return parse_xml(content)
+
     def find_link(
         self, rels: Union[str, Iterable[str]], attr: Optional[str] = None
     ) -> Optional[Union[Link, str, Iterable, Mapping]]:
