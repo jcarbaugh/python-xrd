@@ -65,7 +65,7 @@ def strip_dict(d: Mapping) -> dict:
 
 
 def parse_isodatetime(datetime_str: str) -> datetime:
-    return datetime.fromisoformat(datetime_str)
+    return datetime.fromisoformat(datetime_str.replace("Z", "+00:00"))
 
 
 def str_isodatetime(dt: datetime) -> str:
