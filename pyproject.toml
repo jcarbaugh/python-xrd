@@ -9,7 +9,6 @@ packages = [{include = "xrd.py"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-isodate = "^0.6.1"
 
 
 [tool.poetry.group.dev.dependencies]

@@ -1,9 +1,8 @@
 import datetime
 
-import isodate  # type: ignore
 import pytest
 
-from xrd import XRD, Link, Title, _get_text
+from xrd import XRD, Link, Title, node_text
 
 
 def test_xmlid():
@@ -14,26 +13,26 @@ def test_xmlid():
 
 def test_expires():
     xrd = XRD(
-        expires=datetime.datetime(2023, 1, 1, 0, 0, 0, tzinfo=isodate.tzinfo.Utc())
+        expires=datetime.datetime(2023, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc)
     )
     doc = xrd.as_xml().documentElement
     elem = doc.getElementsByTagName("Expires")[0]
-    assert _get_text(elem) == "2023-01-01T00:00:00Z"
+    assert node_text(elem) == "2023-01-01T00:00:00Z"
 
 
 def test_subject():
     xrd = XRD(subject="acct:someone@example.com")
     doc = xrd.as_xml().documentElement
     elem = doc.getElementsByTagName("Subject")[0]
-    assert _get_text(elem) == "acct:someone@example.com"
+    assert node_text(elem) == "acct:someone@example.com"
 
 
 def test_aliases():
     xrd = XRD(aliases=["acct:someone@example.com", "https://example.com/someone"])
     doc = xrd.as_xml().documentElement
     elems = doc.getElementsByTagName("Alias")
-    assert _get_text(elems[0]) == "acct:someone@example.com"
-    assert _get_text(elems[1]) == "https://example.com/someone"
+    assert node_text(elems[0]) == "acct:someone@example.com"
+    assert node_text(elems[1]) == "https://example.com/someone"
 
 
 def test_property():
@@ -43,7 +42,7 @@ def test_property():
     doc = xrd.as_xml().documentElement
     elem = doc.getElementsByTagName("Property")[0]
     assert elem.getAttribute("type") == "mimetype"
-    assert _get_text(elem) == "text/plain"
+    assert node_text(elem) == "text/plain"
 
 
 def test_property_nil():
@@ -56,7 +55,7 @@ def test_property_nil():
     elem = doc.getElementsByTagName("Property")[0]
     assert elem.getAttribute("type") == "mimetype"
     assert elem.getAttribute("xsi:nil").lower() == "true"
-    assert _get_text(elem) is None
+    assert node_text(elem) is None
 
 
 def test_property_multiple():
@@ -69,7 +68,7 @@ def test_property_multiple():
     assert set(e.getAttribute("type") for e in elems) == {
         "http://spec.example.net/version"
     }
-    assert sorted(_get_text(e) for e in elems) == ["1.0", "2.0"]
+    assert sorted(node_text(e) for e in elems) == ["1.0", "2.0"]
 
 
 def test_link():
@@ -100,10 +99,10 @@ def test_link_title():
     link = doc.getElementsByTagName("Link")[0]
     titles = link.getElementsByTagName("Title")
 
-    assert _get_text(titles[0]) == "User Photo"
+    assert node_text(titles[0]) == "User Photo"
     assert titles[0].getAttribute("xml:lang") == ""
 
-    assert _get_text(titles[1]) == "Benutzerfoto"
+    assert node_text(titles[1]) == "Benutzerfoto"
     assert titles[1].getAttribute("xml:lang") == "de"
 
 
@@ -115,7 +114,7 @@ def test_link_property():
     link = doc.getElementsByTagName("Link")[0]
     elem = link.getElementsByTagName("Property")[0]
     assert elem.getAttribute("type") == "http://spec.example.net/created/1.0"
-    assert _get_text(elem) == "1970-01-01"
+    assert node_text(elem) == "1970-01-01"
 
 
 def test_link_property_nil():
@@ -125,7 +124,7 @@ def test_link_property_nil():
     elem = link.getElementsByTagName("Property")[0]
     assert elem.getAttribute("type") == "http://spec.example.net/created/1.0"
     assert elem.getAttribute("xsi:nil").lower() == "true"
-    assert _get_text(elem) is None
+    assert node_text(elem) is None
 
 
 def test_link_property_multiple():
@@ -139,7 +138,7 @@ def test_link_property_multiple():
     assert set(e.getAttribute("type") for e in elems) == {
         "http://spec.example.net/version"
     }
-    assert sorted(_get_text(e) for e in elems) == ["1.0", "2.0"]
+    assert sorted(node_text(e) for e in elems) == ["1.0", "2.0"]
 
 
 def test_xrd_attributes():

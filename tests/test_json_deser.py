@@ -1,6 +1,5 @@
 import datetime
 
-import isodate  # type: ignore
 import pytest
 
 from xrd import parse_json
@@ -10,7 +9,7 @@ def test_expires():
     jrd = """{"expires": "2023-01-01T00:00:00Z"}"""
     xrd = parse_json(jrd)
     assert xrd.expires == datetime.datetime(
-        2023, 1, 1, 0, 0, 0, tzinfo=isodate.tzinfo.Utc()
+        2023, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc
     )
 
 

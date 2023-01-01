@@ -1,6 +1,6 @@
 from xml.dom.minidom import parseString
 
-from xrd import XRD, Link, _get_text
+from xrd import XRD, Link, is_empty, node_text, strip_dict
 
 
 def test_xrd_find_link():
@@ -62,7 +62,7 @@ def test_complex_links():
     assert xrd.as_xml()
 
 
-def test_get_text():
+def testnode_text():
     content = """<?xml version="1.0" ?>
     <XRD xmlns="http://docs.oasis-open.org/ns/xri/xrd-1.0">
         <Property type="http://spec.example.net/version">1.0</Property>
@@ -71,10 +71,10 @@ def test_get_text():
     doc = parseString(content)
     root = doc.documentElement
     elem = root.getElementsByTagName("Property")[0]
-    assert _get_text(elem) == "1.0"
+    assert node_text(elem) == "1.0"
 
 
-def test_get_text_nested():
+def test_node_text_nested():
     content = """<?xml version="1.0" ?>
     <XRD xmlns="http://docs.oasis-open.org/ns/xri/xrd-1.0">
         <Property type="http://spec.example.net/version">
@@ -85,4 +85,46 @@ def test_get_text_nested():
     doc = parseString(content)
     root = doc.documentElement
     elem = root.getElementsByTagName("Property")[0]
-    assert _get_text(elem) == "1.0"
+    assert node_text(elem) == "1.0"
+
+
+def test_is_empty():
+
+    assert is_empty(None)
+    assert is_empty("")
+    assert is_empty(dict())
+    assert is_empty(list())
+    assert is_empty(set())
+    assert is_empty(tuple())
+
+    assert not is_empty(".")
+    assert not is_empty(0)
+    assert not is_empty(1)
+    assert not is_empty({"a": None})  # dict with an empty value is not empty
+    assert not is_empty([None])  # list with an empty value is not empty
+    assert not is_empty([1, 2])
+    assert not is_empty({1, 2})
+    assert not is_empty((1, 2))
+
+
+def test_strip_dict():
+
+    assert strip_dict({}) == {}
+
+    assert strip_dict({"a": None}) == {}
+    assert strip_dict({"a": ""}) == {}
+    assert strip_dict({"a": dict()}) == {}
+    assert strip_dict({"a": list()}) == {}
+    assert strip_dict({"a": set()}) == {}
+    assert strip_dict({"a": tuple()}) == {}
+
+    assert strip_dict({"a": "."}) == {"a": "."}
+    assert strip_dict({"a": 0}) == {"a": 0}
+    assert strip_dict({"a": 1}) == {"a": 1}
+
+
+def test_parse_xrd_classmethod():
+    content = """<?xml version="1.0" ?>
+    <XRD xmlns="http://docs.oasis-open.org/ns/xri/xrd-1.0" />
+    """
+    assert XRD.parse_xrd(content)

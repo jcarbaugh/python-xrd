@@ -1,7 +1,6 @@
 import datetime
 from xrd import XRD, parse_xml
 
-import isodate  # type: ignore
 import pytest
 
 
@@ -21,7 +20,7 @@ def test_expires():
     """
     xrd = parse_xml(content)
     assert xrd.expires == datetime.datetime(
-        2023, 1, 1, 0, 0, 0, tzinfo=isodate.tzinfo.Utc()
+        2023, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc
     )
 
 

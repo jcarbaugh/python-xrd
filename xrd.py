@@ -11,24 +11,70 @@ from xml.dom.minidom import (
     Node,
 )
 
-import isodate  # type: ignore
-
-__version__ = "1.0.0"
-
-XRD_NAMESPACE = "http://docs.oasis-open.org/ns/xri/xrd-1.0"
-
 """
 XRD: http://docs.oasis-open.org/xri/xrd/v1.0/xrd-1.0.html
 JRD: https://datatracker.ietf.org/doc/rfc6415/
 """
 
+__version__ = "1.0.0"
+
+XRD_NAMESPACE = "http://docs.oasis-open.org/ns/xri/xrd-1.0"
+
 logger = logging.getLogger(__name__)
 
 
-def ensure_iterable(v: Any) -> Iterable:
-    if not isinstance(v, (list, tuple)):
-        return (v,)
-    return v
+#
+# Utility methods
+#
+
+
+def ensure_iterable(value: Any) -> Iterable:
+    """If the value is not a list or tuple, return a tuple containing the value.
+    Otherwise, return the value itself.
+    """
+    return value if isinstance(value, (list, tuple)) else (value,)
+
+
+def node_text(root: Node) -> Optional[str]:
+    """Render the text content of a node and its children."""
+    text = ""
+    for node in root.childNodes:
+        if node.nodeType == Node.TEXT_NODE and node.nodeValue:
+            text += node.nodeValue
+        else:
+            child_text = node_text(node)
+            if child_text:
+                text += child_text
+    return text.strip() or None
+
+
+def is_empty(value):
+    """Empty values are None and empty strings, lists, tuples, sets, and dicts."""
+    return (
+        value is None
+        or value == ""
+        or (isinstance(value, (list, tuple, set, dict)) and not value)
+    )
+
+
+def strip_dict(d: Mapping) -> dict:
+    """Remove keys with empty values from a dict.
+    Uses is_empty() to determine emptiness.
+    """
+    return {key: value for key, value in d.items() if not is_empty(value)}
+
+
+def parse_isodatetime(datetime_str: str) -> datetime:
+    return datetime.fromisoformat(datetime_str)
+
+
+def str_isodatetime(dt: datetime) -> str:
+    return datetime.isoformat(dt).replace("+00:00", "Z")
+
+
+#
+# Models
+#
 
 
 @dataclass
@@ -95,29 +141,12 @@ class XRD:
                 )
 
 
-def _get_text(root: Node) -> Optional[str]:
-    text = ""
-    for node in root.childNodes:
-        if node.nodeType == Node.TEXT_NODE and node.nodeValue:
-            text += node.nodeValue
-        else:
-            node_text = _get_text(node)
-            if node_text:
-                text += node_text
-    return text.strip() or None
-
-
-def _clean_dict(d: Mapping) -> dict:
-    """Remove empty values from a dict."""
-    return {key: value for key, value in d.items() if value}
-
-
 # json parser/renderer
 
 
 def parse_json(content: str) -> XRD:
     def expires_handler(key, val, obj):
-        obj.expires = isodate.parse_datetime(val)
+        obj.expires = parse_isodatetime(val)
 
     def subject_handler(key, val, obj):
         obj.subject = val
@@ -188,7 +217,7 @@ def render_json(xrd: XRD) -> str:
     }
 
     if xrd.expires:
-        doc["expires"] = isodate.datetime_isoformat(xrd.expires)
+        doc["expires"] = str_isodatetime(xrd.expires)
 
     if xrd.subject:
         doc["subject"] = xrd.subject
@@ -229,38 +258,35 @@ def render_json(xrd: XRD) -> str:
             lang = title.lang or "default"
             link_doc["titles"][lang] = title.value
 
-        doc["links"].append(_clean_dict(link_doc))
+        doc["links"].append(strip_dict(link_doc))
 
-    return json.dumps(_clean_dict(doc))
+    return json.dumps(strip_dict(doc))
 
 
 # xml parser/renderer
 
 
 def parse_xml(content: str) -> XRD:
-
-    import isodate
-
     def expires_handler(node, obj):
-        obj.expires = isodate.parse_datetime(_get_text(node))
+        obj.expires = parse_isodatetime(node_text(node))
 
     def subject_handler(node, obj):
-        obj.subject = _get_text(node)
+        obj.subject = node_text(node)
 
     def alias_handler(node, obj):
-        obj.aliases.append(_get_text(node))
+        obj.aliases.append(node_text(node))
 
     def property_handler(node, obj):
         key = node.getAttribute("type")
         if key in obj.properties:
             if not isinstance(obj.properties[key], list):
                 obj.properties[key] = [obj.properties[key]]
-            obj.properties[key].append(_get_text(node))
+            obj.properties[key].append(node_text(node))
         else:
-            obj.properties[key] = _get_text(node)
+            obj.properties[key] = node_text(node)
 
     def title_handler(node, obj):
-        obj.titles.append(Title(_get_text(node), node.getAttribute("xml:lang")))
+        obj.titles.append(Title(node_text(node), node.getAttribute("xml:lang")))
 
     def link_handler(node, obj):
         l = Link()
@@ -325,7 +351,7 @@ def render_xml(xrd: XRD) -> Document:
 
     if xrd.expires:
         node = doc.createElement("Expires")
-        node.appendChild(doc.createTextNode(isodate.datetime_isoformat(xrd.expires)))
+        node.appendChild(doc.createTextNode(str_isodatetime(xrd.expires)))
         root.appendChild(node)
 
     if xrd.subject:

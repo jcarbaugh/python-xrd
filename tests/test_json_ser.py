@@ -2,13 +2,12 @@ import datetime
 import json
 from xrd import XRD, Link, Title
 
-import isodate  # type: ignore
 import pytest
 
 
 def test_expires():
     xrd = XRD(
-        expires=datetime.datetime(2023, 1, 1, 0, 0, 0, tzinfo=isodate.tzinfo.Utc())
+        expires=datetime.datetime(2023, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc)
     )
     data = json.loads(xrd.as_json())
     assert data["expires"] == "2023-01-01T00:00:00Z"
